@@ -1,14 +1,14 @@
 import { createElement, useCallback } from "react";
-import { resolveCallStack } from "@/resolveCallStack";
+import { resolveCallStack } from "./resolveCallStack";
 import {
   transformFnProp,
   useProxyMarker,
   type CallStack,
   type ReactAsyncProxy,
   type ReactAsyncProxyMethods,
-} from "@/types";
-import { useCallStack } from "@/useCallStack";
-import { Render } from "@/lib/Render";
+} from "./types";
+import { useCallStack } from "./useCallStack";
+import { Render } from "./lib/Render";
 
 function buildProxyDeep<T>(model: T, callStack: CallStack): ReactAsyncProxy<T> {
   const target = (() => {}) as never;

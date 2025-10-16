@@ -1,7 +1,7 @@
 import { expectTypeOf, test } from "vitest";
-import type { Customer, ProjectDetailed } from "@/testMocks";
-import { ProjectProxy } from "@/testMocks";
-import type { ReactAsyncProxy } from "@/types";
+import type { Customer, ProjectDetailed } from "./testMocks";
+import { ProjectProxy } from "./testMocks";
+import type { ReactAsyncProxy } from "./types";
 
 test("return type is correct", () => {
   const customerNameProxy = ProjectProxy.ofId("Project A")

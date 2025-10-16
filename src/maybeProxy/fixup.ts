@@ -1,10 +1,10 @@
-import { reactAsyncProxy } from "@/reactAsyncProxy";
-import { isReactAsyncProxy, type ReactAsyncProxy } from "@/types";
+import { reactAsyncProxy } from "../reactAsyncProxy";
+import { isReactAsyncProxy, type ReactAsyncProxy } from "../types";
 import type {
   MaybeReactAsyncProxy,
   PropsWithFixedUpReactAsyncProxies,
   PropsWithMaybeReactAsyncProxies,
-} from "@/maybeProxy/types";
+} from "../maybeProxy/types";
 
 export function fixupMaybeReactAsyncProxy<T>(
   maybeProxy: MaybeReactAsyncProxy<T>,

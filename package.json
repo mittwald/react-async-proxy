@@ -33,7 +33,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "pnpm build:clean && pnpm tsc && pnpm tsc-alias -p tsconfig.json",
+    "build": "pnpm build:clean && pnpm tsc",
     "build:clean": "rimraf dist",
     "format": "prettier --write '**/*.{ts,tsx,yaml,yml,json,md,mdx}'",
     "license-check": "license-checker-rseidelsohn $*",

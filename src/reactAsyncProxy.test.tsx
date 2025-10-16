@@ -8,7 +8,7 @@ import {
   ProjectProxy,
   customerMocks,
   projectMocks,
-} from "@/testMocks";
+} from "./testMocks";
 
 test("pre test", async () => {
   const project = new Project("P1");

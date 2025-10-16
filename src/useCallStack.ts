@@ -2,7 +2,7 @@ import { getAsyncResource, usePromise } from "@mittwald/react-use-promise";
 import is, { assert } from "@sindresorhus/is";
 import { hash } from "object-code";
 import { useMemo, useRef } from "react";
-import { getModelIdentifiers } from "@/modelIdentifier";
+import { getModelIdentifiers } from "./modelIdentifier";
 import {
   transformFnProp,
   type CallStack,
@@ -11,10 +11,10 @@ import {
   type CallStackModelType,
   type ReactAsyncProxyOptions,
   type UseAsyncProxyReturn,
-} from "@/types";
-import { joinedId } from "@/lib/joinedId";
-import { reactUsePromiseTag } from "@/tags";
-import { useIsFirstRender } from "@/lib/useIsFirstRender";
+} from "./types";
+import { joinedId } from "./lib/joinedId";
+import { reactUsePromiseTag } from "./tags";
+import { useIsFirstRender } from "./lib/useIsFirstRender";
 
 const useVoidPromise = (options: ReactAsyncProxyOptions) =>
   usePromise(() => Promise.resolve(), null, options);

@@ -11,9 +11,6 @@
     "module": "es6",
     "moduleResolution": "bundler",
     "outDir": "dist/esm",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true,
@@ -23,13 +20,5 @@
     "target": "ES2022"
   },
   "exclude": ["test-d/**/*", "*.test.ts"],
-  "include": ["src"],
-  "tsc-alias": {
-    "verbose": false,
-    "resolveFullPaths": true,
-    "fileExtensions": {
-      "inputGlob": "{js,jsx,mjs}",
-      "outputCheck": ["js", "json", "jsx", "mjs"]
-    }
-  }
+  "include": ["src"]
 }

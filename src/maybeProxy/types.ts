@@ -1,4 +1,4 @@
-import { type OrOptional, type ReactAsyncProxy } from "@/types";
+import { type OrOptional, type ReactAsyncProxy } from "../types";
 
 export type MaybeReactAsyncProxy<T> =
   T extends ReactAsyncProxy<infer U>

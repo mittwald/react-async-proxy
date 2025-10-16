@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, test } from "vitest";
-import { type MaybeReactAsyncProxy } from "@/maybeProxy/types";
-import type { ReactAsyncProxy } from "@/types";
-import { fixupMaybeReactAsyncProxyProps } from "@/maybeProxy/fixup";
+import { type MaybeReactAsyncProxy } from "../maybeProxy/types";
+import type { ReactAsyncProxy } from "../types";
+import { fixupMaybeReactAsyncProxyProps } from "../maybeProxy/fixup";
 
 type ModelA = { a: string };
 type ModelB = { b: number };

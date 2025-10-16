@@ -7,7 +7,7 @@ import {
   type CallStackItem,
   type CallStackModelType,
   type ExplicitAny,
-} from "@/types";
+} from "./types";
 
 const resolveCallStackItem = async (target: unknown, item: CallStackItem) => {
   const { propName, args } = item;
