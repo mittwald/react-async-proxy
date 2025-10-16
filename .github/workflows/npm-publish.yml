@@ -1,0 +1,26 @@
+name: Publish Node.js Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org/
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - run: pnpm i
+      - run: pnpm test
+      - run: pnpm build
+      - run:
+          npm version --no-workspaces-update --no-git-tag-version
+          ${{github.ref_name}}
+      - run: npm publish --access=public --tag=$(npx auto-dist-tag)
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
