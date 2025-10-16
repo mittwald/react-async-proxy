@@ -1,0 +1,30 @@
+name: Publish Node.js Package
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - run: pnpm i
+      - run: pnpm --filter ./packages/** test
+      - run: pnpm --filter ./packages/** build
+      - run: pnpm version from-git --no-git-tag-version
+        working-directory: packages/react-ghostmaker
+      - run: cp README.md LICENSE packages/react-ghostmaker/
+        working-directory: packages/react-ghostmaker
+      - run: pnpm publish --no-git-checks
+        working-directory: packages/react-ghostmaker

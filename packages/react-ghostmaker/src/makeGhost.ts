@@ -1,0 +1,102 @@
+import { createElement } from "react";
+import {
+  isGhostMarker,
+  transformFnProp,
+  type AnyFunction,
+  type GhostChain,
+  type ReactGhost,
+  type ReactGhostMethods,
+} from "./types";
+import { useGhostChain } from "./useGhostChain";
+import { RenderComponent } from "./RenderComponent";
+import { resolveGhostChain } from "./resolveGhostChain";
+import { type QueryClient } from "@tanstack/react-query";
+import { invalidateGhosts } from "./invalidate";
+
+type GhostMethodsWithoutPromise<T> = Omit<
+  ReactGhostMethods<T>,
+  "then" | "catch" | "finally" | SymbolConstructor["toStringTag"]
+>;
+
+function buildGhostDeep<T>(model: T, ghostChain: GhostChain): ReactGhost<T> {
+  const target = (() => {
+    // Dummy function to allow ghosting function calls
+  }) as never;
+
+  const useQuery: ReactGhostMethods<T>["useGhost"] = (options) =>
+    useGhostChain<T>(model, ghostChain, options);
+
+  const useGhostMethods: GhostMethodsWithoutPromise<T> = {
+    use: (options) => useQuery(options).value,
+    useGhost: useQuery,
+
+    render: (transform) => {
+      const render = () => {
+        const usedValue = useGhostMethods.use();
+        return transform ? transform(usedValue) : usedValue;
+      };
+      return createElement(RenderComponent, { render });
+    },
+
+    transform: (fn, dependencies) => {
+      ghostChain.push({
+        propName: transformFnProp,
+        args: [fn, dependencies],
+      });
+      return ghost;
+    },
+
+    invalidate: (queryClient: QueryClient) => {
+      invalidateGhosts(queryClient, model, ghostChain);
+    },
+  };
+
+  const ghost = new Proxy(target, {
+    get: ($, prop) => {
+      if (prop === isGhostMarker) {
+        return true;
+      }
+
+      if (prop in useGhostMethods) {
+        return useGhostMethods[prop as keyof GhostMethodsWithoutPromise<T>];
+      }
+
+      if (prop === "then") {
+        return (resolve: AnyFunction, reject: AnyFunction) =>
+          resolveGhostChain(model, ghostChain).then(resolve).catch(reject);
+      }
+
+      if (prop === Symbol.toPrimitive) {
+        return (hint: string) => {
+          if (hint === "string") {
+            return "ReactGhostmakerFunction";
+          }
+          return null;
+        };
+      }
+
+      return buildGhostDeep(model, [
+        ...ghostChain,
+        {
+          propName: String(prop),
+        },
+      ]);
+    },
+
+    apply: ($, $$, args) => {
+      const prevCallStackEntry = ghostChain[ghostChain.length - 1];
+
+      if (prevCallStackEntry) {
+        prevCallStackEntry.args = args;
+      }
+
+      return buildGhostDeep(model, ghostChain);
+    },
+  });
+
+  return ghost;
+}
+
+export function makeGhost<T>(model: T): ReactGhost<T> {
+  return buildGhostDeep(model, []);
+}
