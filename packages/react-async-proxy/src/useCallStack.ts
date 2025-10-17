@@ -16,7 +16,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { getModelQueryKey } from "./lib/getModelQueryKey";
+import { getModelQueryKey } from "./getModelQueryKey";
 
 const useVoidQuery = () =>
   useQuery({
@@ -64,7 +64,7 @@ const useCallStackItem = <T>(
 
   const modelFunction = modelProperty.bind(model);
   const queryId = nanoid();
-  const modelQueryKey = [getModelQueryKey(model), model, propName, ...args];
+  const modelQueryKey = getModelQueryKey(model, propName, ...args);
 
   const query = useSuspenseQuery<UseQueryReturnType<T>>({
     staleTime: Infinity,
