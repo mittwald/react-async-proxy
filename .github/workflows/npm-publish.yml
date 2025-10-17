@@ -4,6 +4,10 @@ on:
   release:
     types: [created]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
@@ -24,5 +28,3 @@ jobs:
         working-directory: packages/react-async-proxy
       - run: npm publish --access=public --tag=$(npx auto-dist-tag)
         working-directory: packages/react-async-proxy
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
