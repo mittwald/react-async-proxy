@@ -1,6 +1,5 @@
 import { beforeEach, vitest } from "vitest";
 import { reactAsyncProxy } from ".";
-import { registerModelIdentifier } from "./modelIdentifier";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -121,14 +120,3 @@ export class ProjectDetailed {
 
 export const ProjectProxy = reactAsyncProxy(Project);
 export const CustomerProxy = reactAsyncProxy(Customer);
-
-registerModelIdentifier((something) => {
-  if (
-    something instanceof Customer ||
-    something instanceof CustomerDetailed ||
-    something instanceof Project ||
-    something instanceof ProjectDetailed
-  ) {
-    return something.id;
-  }
-});

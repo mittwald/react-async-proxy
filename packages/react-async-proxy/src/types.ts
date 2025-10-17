@@ -1,4 +1,4 @@
-import type { UseWatchResourceOptions } from "@mittwald/react-use-promise";
+import { type UseQueryOptions } from "@tanstack/react-query";
 import is from "@sindresorhus/is";
 import type { DependencyList, ReactNode } from "react";
 import type { Class, UnknownRecord } from "type-fest";
@@ -8,14 +8,18 @@ export type ExplicitAny = any;
 export type OrOptional<T> = T extends undefined ? undefined : never;
 export type AnyFunction = (...args: ExplicitAny[]) => ExplicitAny;
 
-export type ReactAsyncProxyOptions = Omit<
-  UseWatchResourceOptions,
-  "useSuspense"
+export interface UseQueryReturnType<T> {
+  result: T;
+}
+
+export type ProxyUseQueryOptions<T> = Omit<
+  UseQueryOptions<UseQueryReturnType<T>>,
+  "queryKey" | "queryFn"
 >;
 
 export interface ReactAsyncProxyMethods<T> {
-  use: (options?: ReactAsyncProxyOptions) => UseAsyncProxyReturn<T>;
-  useValue: (options?: ReactAsyncProxyOptions) => T;
+  useQuery: (options?: ProxyUseQueryOptions<T>) => UseAsyncProxyReturn<T>;
+  useValue: (options?: ProxyUseQueryOptions<T>) => T;
   resolve: () => Promise<T>;
   render: (transform?: (item: T) => ReactNode) => ReactNode;
   transform: <U, U2 = U>(

@@ -1,4 +1,4 @@
-import { createElement, useCallback } from "react";
+import { createElement } from "react";
 import { resolveCallStack } from "./resolveCallStack";
 import {
   transformFnProp,
@@ -11,22 +11,24 @@ import { useCallStack } from "./useCallStack";
 import { Render } from "./lib/Render";
 
 function buildProxyDeep<T>(model: T, callStack: CallStack): ReactAsyncProxy<T> {
-  const target = (() => {}) as never;
+  const target = (() => {
+    // Dummy function to allow proxying function calls
+  }) as never;
 
-  const use: ReactAsyncProxyMethods<T>["use"] = (options) =>
+  const useQuery: ReactAsyncProxyMethods<T>["useQuery"] = (options) =>
     useCallStack<T>(model, callStack, options);
 
   const useProxyMethods: ReactAsyncProxyMethods<T> = {
     resolve: () => resolveCallStack(model, callStack),
 
-    use,
-    useValue: (options) => use(options).value,
+    useValue: (options) => useQuery(options).value,
+    useQuery,
 
     render: (transform) => {
-      const render = useCallback(() => {
-        const usedValue = useProxyMethods.use().value;
+      const render = () => {
+        const usedValue = useProxyMethods.useValue();
         return transform ? transform(usedValue) : usedValue;
-      }, []);
+      };
       return createElement(Render, { render });
     },
 
@@ -35,7 +37,6 @@ function buildProxyDeep<T>(model: T, callStack: CallStack): ReactAsyncProxy<T> {
         propName: transformFnProp,
         args: [fn, dependencies],
       });
-
       return proxy;
     },
   };
@@ -48,6 +49,15 @@ function buildProxyDeep<T>(model: T, callStack: CallStack): ReactAsyncProxy<T> {
 
       if (prop in useProxyMethods) {
         return useProxyMethods[prop as keyof ReactAsyncProxyMethods<T>];
+      }
+
+      if (prop === Symbol.toPrimitive) {
+        return (hint: string) => {
+          if (hint === "string") {
+            return "ReactAsyncProxyFunction";
+          }
+          return null;
+        };
       }
 
       return buildProxyDeep(model, [

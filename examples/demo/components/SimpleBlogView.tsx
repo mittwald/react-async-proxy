@@ -8,12 +8,13 @@ interface Props {
 
 export const SimpleBlogView: FC<Props> = (props) => {
   const { blogProxy } = fixupMaybeReactAsyncProxyProps(props);
-  const blog = blogProxy.getDetailed().useValue();
+  const blogTitle = blogProxy
+    .getDetailed()
+    .title.transform((t) => t.toUpperCase());
 
   return (
     <article>
-      <h2>{blog.title}</h2>
-      <p>By {blog.author}</p>
+      <h2>{blogTitle.render()}</h2>
     </article>
   );
 };

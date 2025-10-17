@@ -3,8 +3,14 @@ import { type MaybeReactAsyncProxy } from "../maybeProxy/types";
 import type { ReactAsyncProxy } from "../types";
 import { fixupMaybeReactAsyncProxyProps } from "../maybeProxy/fixup";
 
-type ModelA = { a: string };
-type ModelB = { b: number };
+interface ModelA {
+  a: string;
+}
+
+interface ModelB {
+  b: number;
+}
+
 type ProxyA = ReactAsyncProxy<ModelA>;
 type ProxyB = ReactAsyncProxy<ModelB>;
 

@@ -1,6 +1,5 @@
 import { cleanup, render } from "@testing-library/react";
 import { describe, expect, test, vitest, beforeEach } from "vitest";
-import { refresh } from "@mittwald/react-use-promise";
 import {
   CustomerDetailed,
   CustomerProxy,
@@ -9,6 +8,7 @@ import {
   customerMocks,
   projectMocks,
 } from "./testMocks";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 test("pre test", async () => {
   const project = new Project("P1");
@@ -81,10 +81,12 @@ describe("resolve()", () => {
   });
 });
 
-describe("use()", () => {
+const queryClient = new QueryClient();
+
+describe("useValue()", () => {
   beforeEach(() => {
+    queryClient.clear();
     cleanup();
-    refresh();
   });
 
   async function renderHookWithSuspense<T>(
@@ -101,7 +103,13 @@ describe("use()", () => {
       result.current = callback();
       return <span data-testid="hook-ready" />;
     };
-    const ui = render(<Component />);
+    const ui = render(<Component />, {
+      wrapper: (props) => (
+        <QueryClientProvider client={queryClient}>
+          {props.children}
+        </QueryClientProvider>
+      ),
+    });
 
     if (waitForSuspense) {
       await ui.findByTestId("hook-ready");
@@ -128,7 +136,7 @@ describe("use()", () => {
     expect(customerMocks.getName).toHaveBeenCalledTimes(0);
     expect(transform).toHaveBeenCalledTimes(0);
 
-    await renderHookWithSuspense(() => customerNameProxy.use());
+    await renderHookWithSuspense(() => customerNameProxy.useQuery());
 
     expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1);
     expect(customerMocks.getDetailed).toHaveBeenCalledTimes(1);
@@ -137,51 +145,48 @@ describe("use()", () => {
   });
 
   test("simple usage", async () => {
-    const { result } = await renderHookWithSuspense(
-      () =>
-        ProjectProxy.ofId("Project A")
-          .getDetailed()
-          .customer.getDetailed()
-          .getName()
-          .use().value,
+    const { result } = await renderHookWithSuspense(() =>
+      ProjectProxy.ofId("Project A")
+        .getDetailed()
+        .customer.getDetailed()
+        .getName()
+        .useValue(),
     );
 
     expect(result.current).toBe("Customer C1");
   });
 
   test("simple usage with static function call", async () => {
-    const { result } = await renderHookWithSuspense(
-      () => CustomerProxy.get("Customer A").use().value,
+    const { result } = await renderHookWithSuspense(() =>
+      CustomerProxy.get("Customer A").useValue(),
     );
 
     expect(result.current).toBeInstanceOf(CustomerDetailed);
   });
 
   test("with transform", async () => {
-    const { result } = await renderHookWithSuspense(
-      () =>
-        ProjectProxy.ofId("Project A")
-          .getDetailed()
-          .customer.getDetailed()
-          .getName()
-          .transform((name) => name.toUpperCase())
-          .use().value,
+    const { result } = await renderHookWithSuspense(() =>
+      ProjectProxy.ofId("Project A")
+        .getDetailed()
+        .customer.getDetailed()
+        .getName()
+        .transform((name) => name.toUpperCase())
+        .useValue(),
     );
     expect(result.current).toBe("CUSTOMER C1");
   });
 
   test("with undefined result in call stack", async () => {
-    const { result } = await renderHookWithSuspense(
-      () =>
-        ProjectProxy.ofId("Project A")
-          .findDetailed()
-          .customer.getDetailed()
-          .getName()
-          .transform((name) => {
-            expect(name).toBeUndefined();
-            return name?.toUpperCase();
-          })
-          .use().value,
+    const { result } = await renderHookWithSuspense(() =>
+      ProjectProxy.ofId("Project A")
+        .findDetailed()
+        .customer.getDetailed()
+        .getName()
+        .transform((name) => {
+          expect(name).toBeUndefined();
+          return name?.toUpperCase();
+        })
+        .useValue(),
     );
     expect(result.current).toBeUndefined();
   });

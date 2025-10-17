@@ -17,7 +17,7 @@ export function fixupMaybeReactAsyncProxy<T>(
 
 export function fixupMaybeReactAsyncProxyProps<
   T,
-  TProps extends Array<keyof T> = Array<keyof T>,
+  TProps extends (keyof T)[] = (keyof T)[],
 >(
   props: PropsWithMaybeReactAsyncProxies<T, TProps>,
   keys?: TProps,

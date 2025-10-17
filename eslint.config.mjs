@@ -1,53 +1,23 @@
-import { FlatCompat } from "@eslint/eslintrc";
-import js from "@eslint/js";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
-import tsParser from "@typescript-eslint/parser";
-import globals from "globals";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
-
-export default [
+export default tseslint.config(
   {
     ignores: [
-      "**/*.js",
-      "**/dist/**/*",
-      "**/dist-cjs/**/*",
-      "**/build/",
-      "**/test-d/**/*",
+      "**/dist",
+      "**/out",
+      "**/.next",
+      "**/next.config.js",
+      "**/*.cjs",
+      ".next/**/*",
+      ".nx",
+      "**/.vitest",
     ],
   },
-  ...compat.extends(
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
-  ),
   {
-    plugins: {
-      "@typescript-eslint": typescriptEslint,
-    },
-
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-
-      parser: tsParser,
-      ecmaVersion: "latest",
-      sourceType: "module",
-    },
-
     rules: {
       "linebreak-style": ["error", "unix"],
-
       quotes: [
         "error",
         "double",
@@ -55,9 +25,7 @@ export default [
           avoidEscape: true,
         },
       ],
-
       semi: ["error", "always"],
-
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -66,6 +34,16 @@ export default [
           caughtErrorsIgnorePattern: "[iI]gnored",
         },
       ],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        {
+          fixStyle: "separate-type-imports",
+        },
+      ],
     },
   },
-];
+  eslint.configs.recommended,
+  eslintPluginPrettierRecommended,
+  ...tseslint.configs.recommended,
+  ...tseslint.configs.stylistic,
+);
