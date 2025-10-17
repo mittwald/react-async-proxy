@@ -1,7 +1,6 @@
 {
   "name": "@mittwald/react-async-proxy",
   "version": "1.0.0",
-  "packageManager": "pnpm@10.17.1",
   "author": "Mittwald CM Service GmbH & Co. KG <opensource@mittwald.de>",
   "contributors": [
     "Marco Falkenberg <m.falkenberg@mittwald.de>"
