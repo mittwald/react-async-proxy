@@ -26,5 +26,5 @@ jobs:
           npm version --no-workspaces-update --no-git-tag-version
           ${{github.ref_name}}
         working-directory: packages/react-async-proxy
-      - run: pnpm publish --access=public --tag=$(npx auto-dist-tag)
+      - run: pnpm publish --access=public
         working-directory: packages/react-async-proxy
