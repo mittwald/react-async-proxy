@@ -17,13 +17,12 @@ jobs:
         uses: pnpm/action-setup@v4
       - run: pnpm i
       - run: pnpm --filter ./packages/** test
-
-      # Publish package
-      - run: cd packages/react-async-proxy
-      - run: pnpm build
+      - run: pnpm --filter ./packages/** build
       - run:
           npm version --no-workspaces-update --no-git-tag-version
           ${{github.ref_name}}
+        working-directory: packages/react-async-proxy
       - run: npm publish --access=public --tag=$(npx auto-dist-tag)
+        working-directory: packages/react-async-proxy
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
