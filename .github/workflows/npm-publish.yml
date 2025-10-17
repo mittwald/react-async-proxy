@@ -16,7 +16,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
       - run: pnpm i
-      - run: pnpm test
+      - run: pnpm --filter ./packages/** test
+
+      # Publish package
+      - run: cd packages/react-async-proxy
       - run: pnpm build
       - run:
           npm version --no-workspaces-update --no-git-tag-version
