@@ -78,3 +78,5 @@ export interface QueryFnContext {
   id?: string;
   [key: string]: unknown;
 }
+
+export type ModelIdentifier = (model: unknown) => string | undefined;

@@ -7,3 +7,4 @@ export {
 export * from "./maybeProxy";
 export { useQueryFnContext } from "./context";
 export { invalidateQueriesById } from "./invalidate";
+export { registerModelIdentifier } from "./modelIdentifier";

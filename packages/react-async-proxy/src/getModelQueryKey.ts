@@ -1,7 +1,5 @@
 import is from "@sindresorhus/is";
-import { hash } from "object-code";
-
-const hashCache = new WeakMap<object, number>();
+import { modelIdentifiers } from "./modelIdentifier";
 
 export const getModelQueryKey = (
   model: unknown,
@@ -18,10 +16,7 @@ export const getModelQueryKey = (
       ? model.constructor.name
       : null;
 
-  const modelHash = isObject ? (hashCache.get(model) ?? hash(model)) : null;
-  if (modelHash !== null) {
-    hashCache.set(model as object, modelHash);
-  }
+  const thisModelIdentifiers = modelIdentifiers.map((fn) => fn(model));
 
-  return [staticModelKey, modelHash, propName, ...args];
+  return [staticModelKey, ...thisModelIdentifiers, propName, ...args];
 };

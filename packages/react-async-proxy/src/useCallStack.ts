@@ -1,5 +1,5 @@
 import is, { assert } from "@sindresorhus/is";
-import { useMemo } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef } from "react";
 import {
   transformFnProp,
   type CallStack,
@@ -18,12 +18,15 @@ import {
 import { getModelQueryKey } from "./getModelQueryKey";
 import { invalidateQueriesById } from "./invalidate";
 import { queryFnContext } from "./context";
+import { hash } from "object-code";
 
 const useVoidQuery = () =>
   useQuery({
     queryKey: ["void"],
     queryFn: () => Promise.resolve(),
   });
+
+const hashCache = new WeakMap<object, number>();
 
 const useCallStackItem = <T>(
   target: unknown,
@@ -89,6 +92,28 @@ const useCallStackItem = <T>(
   if (query.error) {
     throw query.error;
   }
+
+  const modelHash = hashCache.get(model) ?? hash(model);
+  hashCache.set(model, modelHash);
+
+  const prevModelHash = useRef<number | null>(modelHash);
+  const prevQueryId = useRef(queryId);
+
+  const needsRefresh =
+    prevQueryId.current === queryId && prevModelHash.current !== modelHash;
+
+  prevModelHash.current = modelHash;
+  prevQueryId.current = queryId;
+
+  const onModelChangeEvent = useEffectEvent(() => {
+    if (needsRefresh) {
+      refresh();
+    }
+  });
+
+  useEffect(() => {
+    onModelChangeEvent();
+  }, [needsRefresh]);
 
   context.refreshFunctions.push(refresh);
   return query.data.result;

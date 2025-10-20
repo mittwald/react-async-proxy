@@ -1,5 +1,5 @@
 import { beforeEach, vitest } from "vitest";
-import { reactAsyncProxy } from ".";
+import { reactAsyncProxy, registerModelIdentifier } from ".";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -120,3 +120,11 @@ export class ProjectDetailed {
 
 export const ProjectProxy = reactAsyncProxy(Project);
 export const CustomerProxy = reactAsyncProxy(Customer);
+
+registerModelIdentifier((model) =>
+  model instanceof Project ? model.id : undefined,
+);
+
+registerModelIdentifier((model) =>
+  model instanceof Customer ? model.id : undefined,
+);
