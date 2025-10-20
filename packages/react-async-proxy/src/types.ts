@@ -12,14 +12,14 @@ export interface UseQueryReturnType<T> {
   result: T;
 }
 
-export type ProxyUseQueryOptions<T> = Omit<
+export type ProxyUseQueryOptions<T = unknown> = Omit<
   UseQueryOptions<UseQueryReturnType<T>>,
   "queryKey" | "queryFn"
 >;
 
 export interface ReactAsyncProxyMethods<T> {
-  useQuery: (options?: ProxyUseQueryOptions<T>) => UseAsyncProxyReturn<T>;
-  useValue: (options?: ProxyUseQueryOptions<T>) => T;
+  useQuery: (options?: ProxyUseQueryOptions) => UseAsyncProxyReturn<T>;
+  useValue: (options?: ProxyUseQueryOptions) => T;
   resolve: () => Promise<T>;
   render: (transform?: (item: T) => ReactNode) => ReactNode;
   transform: <U, U2 = U>(

@@ -122,7 +122,7 @@ const useCallStackItem = <T>(
 export const useCallStack = <T>(
   initialModel: unknown,
   stack: CallStack,
-  options?: ProxyUseQueryOptions<T>,
+  options?: ProxyUseQueryOptions,
 ): UseAsyncProxyReturn<T> => {
   const context: CallStackContext = {
     refreshFunctions: [],
