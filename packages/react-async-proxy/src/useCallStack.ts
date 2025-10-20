@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import is, { assert } from "@sindresorhus/is";
 import { useMemo } from "react";
 import {
@@ -17,8 +16,8 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { getModelQueryKey } from "./getModelQueryKey";
-import { queryFnContext } from "./context";
 import { invalidateQueriesById } from "./invalidate";
+import { queryFnContext } from "./context";
 
 const useVoidQuery = () =>
   useQuery({
@@ -64,27 +63,23 @@ const useCallStackItem = <T>(
 
   assert.function(modelProperty);
 
-  const queryId = nanoid();
-  const modelFunction = queryFnContext.bind(
-    {
-      id: queryId,
-    },
-    modelProperty.bind(model),
-  );
+  const modelFn = modelProperty.bind(model);
   const modelQueryKey = getModelQueryKey(model, propName, ...args);
+  const queryId = modelQueryKey.join("|");
 
   const query = useSuspenseQuery<UseQueryReturnType<T>>({
     ...options,
     queryKey: modelQueryKey,
     queryFn: async () => {
-      const result = await modelFunction(...args);
+      const fnContext = { id: queryId };
+      const modelFnWithContext = queryFnContext.bind(fnContext, modelFn);
+      const result = await modelFnWithContext(...args);
       if (result instanceof Promise) {
         return { result: await result };
       }
       return { result };
     },
     meta: {
-      ...options?.meta,
       id: queryId,
     },
   });
