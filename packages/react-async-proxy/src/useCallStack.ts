@@ -17,6 +17,8 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { getModelQueryKey } from "./getModelQueryKey";
+import { queryFnContext } from "./context";
+import { invalidateQueriesById } from "./invalidate";
 
 const useVoidQuery = () =>
   useQuery({
@@ -62,12 +64,16 @@ const useCallStackItem = <T>(
 
   assert.function(modelProperty);
 
-  const modelFunction = modelProperty.bind(model);
   const queryId = nanoid();
+  const modelFunction = queryFnContext.bind(
+    {
+      id: queryId,
+    },
+    modelProperty.bind(model),
+  );
   const modelQueryKey = getModelQueryKey(model, propName, ...args);
 
   const query = useSuspenseQuery<UseQueryReturnType<T>>({
-    staleTime: Infinity,
     ...options,
     queryKey: modelQueryKey,
     queryFn: async () => {
@@ -79,15 +85,11 @@ const useCallStackItem = <T>(
     },
     meta: {
       ...options?.meta,
-      queryId,
+      id: queryId,
     },
   });
 
-  const refresh = () => {
-    queryClient.invalidateQueries({
-      predicate: (query) => query.meta?.queryId === queryId,
-    });
-  };
+  const refresh = () => invalidateQueriesById(queryClient, queryId);
 
   if (query.error) {
     throw query.error;

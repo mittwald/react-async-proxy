@@ -73,3 +73,8 @@ export function isReactAsyncProxy<T>(
     something[useProxyMarker as keyof typeof something] === true
   );
 }
+
+export interface QueryFnContext {
+  id?: string;
+  [key: string]: unknown;
+}
