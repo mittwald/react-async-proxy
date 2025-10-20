@@ -23,5 +23,5 @@ export const getModelQueryKey = (
     hashCache.set(model as object, modelHash);
   }
 
-  return [staticModelKey, modelHash, ...args];
+  return [staticModelKey, modelHash, propName, ...args];
 };
