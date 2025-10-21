@@ -4,9 +4,9 @@ import type {
   MaybeReactAsyncProxy,
   PropsWithFixedUpReactAsyncProxies,
   PropsWithMaybeReactAsyncProxies,
-} from "../maybeProxy/types";
+} from "./types";
 
-export function fixupMaybeReactAsyncProxy<T>(
+export function asProxy<T>(
   maybeProxy: MaybeReactAsyncProxy<T>,
 ): ReactAsyncProxy<T> {
   if (isReactAsyncProxy<T>(maybeProxy)) {
@@ -15,10 +15,7 @@ export function fixupMaybeReactAsyncProxy<T>(
   return reactAsyncProxy(maybeProxy) as ReactAsyncProxy<T>;
 }
 
-export function fixupMaybeReactAsyncProxyProps<
-  T,
-  TProps extends (keyof T)[] = (keyof T)[],
->(
+export function asProxyProps<T, TProps extends (keyof T)[] = (keyof T)[]>(
   props: PropsWithMaybeReactAsyncProxies<T, TProps>,
   keys?: TProps,
 ): PropsWithFixedUpReactAsyncProxies<T, TProps> {
@@ -29,7 +26,7 @@ export function fixupMaybeReactAsyncProxyProps<
       keys === undefined || keys.includes(key as TProps[number]);
 
     if (shouldFixup) {
-      return [`${key}Proxy`, fixupMaybeReactAsyncProxy(value)];
+      return [`${key}Proxy`, asProxy(value)];
     }
 
     return [key, value];

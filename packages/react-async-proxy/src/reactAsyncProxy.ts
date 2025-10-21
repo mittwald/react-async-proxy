@@ -21,12 +21,12 @@ function buildProxyDeep<T>(model: T, callStack: CallStack): ReactAsyncProxy<T> {
   const useProxyMethods: ReactAsyncProxyMethods<T> = {
     resolve: () => resolveCallStack(model, callStack),
 
-    useValue: (options) => useQuery(options).value,
+    use: (options) => useQuery(options).value,
     useQuery,
 
     render: (transform) => {
       const render = () => {
-        const usedValue = useProxyMethods.useValue();
+        const usedValue = useProxyMethods.use();
         return transform ? transform(usedValue) : usedValue;
       };
       return createElement(Render, { render });

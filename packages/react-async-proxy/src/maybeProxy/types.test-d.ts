@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, test } from "vitest";
 import { type MaybeReactAsyncProxy } from "../maybeProxy/types";
 import type { ReactAsyncProxy } from "../types";
-import { fixupMaybeReactAsyncProxyProps } from "../maybeProxy/fixup";
+import { asProxyProps } from "./asProxy";
 
 interface ModelA {
   a: string;
@@ -20,7 +20,7 @@ describe("fixupMaybeReactAsyncProxyProps()", () => {
       a: MaybeReactAsyncProxy<ProxyA>;
     }
 
-    expectTypeOf(fixupMaybeReactAsyncProxyProps({} as Props)).toEqualTypeOf<{
+    expectTypeOf(asProxyProps({} as Props)).toEqualTypeOf<{
       aProxy: ReactAsyncProxy<ModelA>;
     }>();
   });
@@ -30,7 +30,7 @@ describe("fixupMaybeReactAsyncProxyProps()", () => {
       a?: MaybeReactAsyncProxy<ProxyA>;
     }
 
-    expectTypeOf(fixupMaybeReactAsyncProxyProps({} as Props)).toEqualTypeOf<{
+    expectTypeOf(asProxyProps({} as Props)).toEqualTypeOf<{
       aProxy?: ReactAsyncProxy<ModelA>;
     }>();
   });
@@ -41,7 +41,7 @@ describe("fixupMaybeReactAsyncProxyProps()", () => {
       b: MaybeReactAsyncProxy<ProxyB>;
     }
 
-    expectTypeOf(fixupMaybeReactAsyncProxyProps({} as Props)).toEqualTypeOf<{
+    expectTypeOf(asProxyProps({} as Props)).toEqualTypeOf<{
       aProxy: ReactAsyncProxy<ModelA>;
       bProxy: ReactAsyncProxy<ModelB>;
     }>();
@@ -54,9 +54,7 @@ describe("fixupMaybeReactAsyncProxyProps()", () => {
       c: string;
     }
 
-    expectTypeOf(
-      fixupMaybeReactAsyncProxyProps({} as Props, ["a", "b"]),
-    ).toEqualTypeOf<{
+    expectTypeOf(asProxyProps({} as Props, ["a", "b"])).toEqualTypeOf<{
       aProxy: ReactAsyncProxy<ModelA>;
       bProxy: ReactAsyncProxy<ModelB>;
       c: string;

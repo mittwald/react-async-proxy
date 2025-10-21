@@ -19,7 +19,7 @@ export type ProxyUseQueryOptions<T = unknown> = Omit<
 
 export interface ReactAsyncProxyMethods<T> {
   useQuery: (options?: ProxyUseQueryOptions) => UseAsyncProxyReturn<T>;
-  useValue: (options?: ProxyUseQueryOptions) => T;
+  use: (options?: ProxyUseQueryOptions) => T;
   resolve: () => Promise<T>;
   render: (transform?: (item: T) => ReactNode) => ReactNode;
   transform: <U, U2 = U>(

@@ -1,2 +1,2 @@
-export * from "./fixup";
+export * from "./asProxy";
 export * from "./types";

@@ -150,7 +150,7 @@ describe("useValue()", () => {
         .getDetailed()
         .customer.getDetailed()
         .getName()
-        .useValue(),
+        .use(),
     );
 
     expect(result.current).toBe("Customer C1");
@@ -158,7 +158,7 @@ describe("useValue()", () => {
 
   test("simple usage with static function call", async () => {
     const { result } = await renderHookWithSuspense(() =>
-      CustomerProxy.get("Customer A").useValue(),
+      CustomerProxy.get("Customer A").use(),
     );
 
     expect(result.current).toBeInstanceOf(CustomerDetailed);
@@ -171,7 +171,7 @@ describe("useValue()", () => {
         .customer.getDetailed()
         .getName()
         .transform((name) => name.toUpperCase())
-        .useValue(),
+        .use(),
     );
     expect(result.current).toBe("CUSTOMER C1");
   });
@@ -186,7 +186,7 @@ describe("useValue()", () => {
           expect(name).toBeUndefined();
           return name?.toUpperCase();
         })
-        .useValue(),
+        .use(),
     );
     expect(result.current).toBeUndefined();
   });
