@@ -1,30 +1,41 @@
 import is from "@sindresorhus/is";
 import { modelIdentifiers } from "./modelIdentifier";
-import { hash } from "object-code";
 
-const getObjectName = (something: unknown): string | null => {
+const getObjectIdentifier = (something: unknown): string | null => {
   const isObject = is.object(something);
   const isClass = is.class(something);
   const isFunction = is.function(something);
 
-  return isFunction
+  const objectName = isFunction
     ? something.name
     : isClass || isObject
       ? something.constructor.name
       : null;
+
+  const currentModelIdentifiers = modelIdentifiers
+    .map((fn) => fn(something))
+    .filter(is.string)
+    .join(".");
+
+  if (objectName) {
+    if (currentModelIdentifiers) {
+      return `${objectName}(${currentModelIdentifiers})`;
+    }
+    return objectName;
+  }
+
+  return currentModelIdentifiers || null;
 };
 
 const getArgKey = (arg: unknown) => {
-  if (is.plainObject(arg)) {
-    /**
-     * Opt-out of TanStack Query's default key generation via JSON-Stringify
-     * because it does not support circular references
-     */
-    const objectName = getObjectName(arg);
-    const objectHash = hash(arg);
-    return `${objectName}(${objectHash})`;
+  if (is.primitive(arg)) {
+    return arg;
   }
-  return arg;
+  /**
+   * Opt-out of TanStack Query's default key generation via JSON-Stringify
+   * because it does not support circular references
+   */
+  return getObjectIdentifier(arg);
 };
 
 export const getModelQueryKey = (
@@ -32,8 +43,10 @@ export const getModelQueryKey = (
   propName: string,
   ...args: unknown[]
 ): unknown[] => {
-  const objectName = getObjectName(model);
-  const currentModelIdentifiers = modelIdentifiers.map((fn) => fn(model));
-  const argKeys = args.map(getArgKey);
+  const objectName = getObjectIdentifier(model);
+  const currentModelIdentifiers = modelIdentifiers
+    .map((fn) => fn(model))
+    .filter(is.string);
+  const argKeys = args.map(getArgKey).filter(is.string);
   return [objectName, ...currentModelIdentifiers, propName, ...argKeys];
 };
