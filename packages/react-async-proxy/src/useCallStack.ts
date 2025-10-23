@@ -18,15 +18,13 @@ import {
 import { getModelQueryKey } from "./getModelQueryKey";
 import { invalidateQueriesById } from "./invalidate";
 import { queryFnContext } from "./context";
-import { hash } from "object-code";
+import { hashObject } from "./hash";
 
 const useVoidQuery = () =>
   useQuery({
     queryKey: ["void"],
     queryFn: () => Promise.resolve(),
   });
-
-const hashCache = new WeakMap<object, number>();
 
 const useCallStackItem = <T>(
   target: unknown,
@@ -93,8 +91,7 @@ const useCallStackItem = <T>(
     throw query.error;
   }
 
-  const modelHash = hashCache.get(model) ?? hash(model);
-  hashCache.set(model, modelHash);
+  const modelHash = hashObject(model);
 
   const prevModelHash = useRef<number | null>(modelHash);
   const prevQueryId = useRef(queryId);

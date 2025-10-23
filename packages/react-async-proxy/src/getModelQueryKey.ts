@@ -1,5 +1,6 @@
 import is from "@sindresorhus/is";
 import { modelIdentifiers } from "./modelIdentifier";
+import { hashObject } from "./hash";
 
 const getObjectIdentifier = (something: unknown): string | null => {
   const isObject = is.object(something);
@@ -12,6 +13,8 @@ const getObjectIdentifier = (something: unknown): string | null => {
       ? something.constructor.name
       : null;
 
+  const objectHash = isObject ? hashObject(something) : 0;
+
   const currentModelIdentifiers = modelIdentifiers
     .map((fn) => fn(something))
     .filter(is.string)
@@ -19,12 +22,14 @@ const getObjectIdentifier = (something: unknown): string | null => {
 
   if (objectName) {
     if (currentModelIdentifiers) {
-      return `${objectName}(${currentModelIdentifiers})`;
+      return `${objectName}@${currentModelIdentifiers}(${objectHash})`;
     }
-    return objectName;
+    return `${objectName}(${objectHash})`;
   }
 
-  return currentModelIdentifiers || null;
+  return currentModelIdentifiers
+    ? `@${currentModelIdentifiers}(${objectHash})`
+    : null;
 };
 
 const getArgKey = (arg: unknown) => {
@@ -43,10 +48,7 @@ export const getModelQueryKey = (
   propName: string,
   ...args: unknown[]
 ): unknown[] => {
-  const objectName = getObjectIdentifier(model);
-  const currentModelIdentifiers = modelIdentifiers
-    .map((fn) => fn(model))
-    .filter(is.string);
+  const objectIdentifier = getObjectIdentifier(model);
   const argKeys = args.map(getArgKey).filter(is.string);
-  return [objectName, ...currentModelIdentifiers, propName, ...argKeys];
+  return [objectIdentifier, `${propName}()`, ...argKeys];
 };
