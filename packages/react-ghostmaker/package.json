@@ -6,16 +6,18 @@
     "Marco Falkenberg <m.falkenberg@mittwald.de>"
   ],
   "type": "module",
-  "description": "Create ghost proxies from objects that lets you easily handle async methods with React Suspense.",
+  "description": "Transform your async models into React Suspense-ready ghosts",
   "keywords": [
     "async",
     "domain",
     "lazy",
     "load",
     "model",
+    "query",
     "react",
     "react-suspense",
-    "suspense"
+    "suspense",
+    "tanstack"
   ],
   "homepage": "https://github.com/mittwald/react-ghostmaker#readme",
   "repository": "github:mittwald/react-ghostmaker",
