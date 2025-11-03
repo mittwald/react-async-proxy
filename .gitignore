@@ -2,18 +2,8 @@
 .DS_Store
 Thumbs.db
 
-# Yarn 2 Zero-Install (https://yarnpkg.com/features/zero-installs)
-.yarn/*
-!.yarn/cache
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
 # Dev
 dist/
-dist-cjs/
 coverage/
 *.tsbuildinfo
 node_modules
