@@ -1,32 +1,46 @@
 import is, { assert } from "@sindresorhus/is";
-import { useMemo } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef } from "react";
 import {
   transformFnProp,
   type GhostChain,
   type GhostChainContext,
   type GhostChainItem,
-  type GhostChainModelType,
+  type QueryKey,
   type useGhostOptions,
   type UseGhostReturn,
   type UseQueryReturnType,
 } from "./types";
-import {
-  useQuery,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
-import { getGhostId, queries } from "./queries";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { queries } from "./queries";
 import { ghostFnContext } from "./context";
 import { invalidateGhosts } from "./invalidate";
+import { hashObject } from "./hash";
 
-const useVoidQuery = () =>
-  useQuery<UseQueryReturnType<true>>({
-    queryKey: ["void"],
-    queryFn: () =>
-      Promise.resolve({
-        result: true,
-      }),
-  });
+export const useGhostChain = <T>(
+  target: unknown,
+  chain: GhostChain,
+  options?: useGhostOptions,
+): UseGhostReturn<T> => {
+  const queryClient = useQueryClient();
+
+  const context: GhostChainContext = {
+    queryKey: queries.target(target),
+  };
+
+  const value = chain.reduce(
+    (currentTarget, item) =>
+      useGhostChainItem(currentTarget, item, options, context),
+    target as unknown,
+  ) as T;
+
+  const invalidate = () =>
+    invalidateGhosts(queryClient, queries.ghostChain(target, chain));
+
+  return {
+    value,
+    invalidate,
+  };
+};
 
 const useGhostChainItem = <T>(
   target: unknown,
@@ -36,8 +50,6 @@ const useGhostChainItem = <T>(
 ): unknown => {
   const { propName, args } = item;
 
-  const model = target as GhostChainModelType;
-
   if (propName === transformFnProp) {
     assert.array(args);
     const transformFn = args[0];
@@ -45,49 +57,41 @@ const useGhostChainItem = <T>(
 
     const transformDependencies = args[1] ?? [];
     assert.array(transformDependencies);
-    return useMemo(() => transformFn(model), [model, ...transformDependencies]);
+    return useMemo(
+      () => transformFn(target),
+      [target, ...transformDependencies],
+    );
   }
 
-  if (is.nullOrUndefined(model)) {
-    if (args) {
-      useVoidQuery();
-    }
-    return model;
+  if (is.nullOrUndefined(target)) {
+    return target;
   }
+  assert.object(target);
 
-  const modelPropertyName = propName as keyof typeof model;
-  const modelProperty = model[modelPropertyName];
-  context.queryKey.push(...queries.chainItem(item));
+  const targetPropertyName = propName as keyof typeof target;
+  const targetProperty = target[targetPropertyName];
+  context.queryKey = queries.chainItem(context.queryKey, item);
 
   if (args === undefined) {
     // no function call, just a property access
-    return modelProperty;
+    return targetProperty;
   }
 
-  assert.function(modelProperty);
-  const modelFn = modelProperty.bind(model);
+  assert.function(targetProperty);
+  const targetFn = targetProperty.bind(target);
 
   const queryKey = [...context.queryKey];
 
   const query = useSuspenseQuery<UseQueryReturnType<T>>({
     ...options,
-    queryKey: [...context.queryKey],
-    queryFn: async () => {
-      const modelFnWithContext = ghostFnContext.bind(
-        { ghostId: context.ghostId },
-        modelFn,
-      );
-      const result = await modelFnWithContext(...args);
-      if (result instanceof Promise) {
-        return { result: await result };
-      }
-      return { result };
-    },
-    meta: {
-      ghostId: context.ghostId,
-      queryKey,
+    queryKey,
+    queryFn: async (ctx) => {
+      const targetFnWithContext = ghostFnContext.bind({ query: ctx }, targetFn);
+      return { result: await targetFnWithContext(...args) };
     },
   });
+
+  useTargetAutoInvalidate(target, queryKey);
 
   if (query.error) {
     throw query.error;
@@ -96,32 +100,32 @@ const useGhostChainItem = <T>(
   return query.data.result;
 };
 
-export const useGhostChain = <T>(
-  initialModel: unknown,
-  chain: GhostChain,
-  options?: useGhostOptions,
-): UseGhostReturn<T> => {
+const useTargetAutoInvalidate = (target: object, queryKey: QueryKey) => {
   const queryClient = useQueryClient();
 
-  const chainQueryId = queries.ghostChain(initialModel, chain);
-  const ghostId = getGhostId(chainQueryId);
+  const invalidate = () =>
+    queryClient.invalidateQueries({
+      queryKey,
+    });
 
-  const context: GhostChainContext = {
-    queryKey: queries.model(initialModel),
-    ghostId,
-  };
+  const targetHash = hashObject(target);
+  const prevTargetHash = useRef(targetHash);
+  const joinedQueryKey = queryKey.join(".");
+  const prevQueryId = useRef(joinedQueryKey);
 
-  const value = chain.reduce(
-    (model, item) => useGhostChainItem(model, item, options, context),
-    initialModel,
-  ) as T;
+  const needsRefresh =
+    prevQueryId.current === joinedQueryKey &&
+    prevTargetHash.current !== targetHash;
+  prevTargetHash.current = targetHash;
+  prevQueryId.current = joinedQueryKey;
 
-  const invalidate = () => {
-    invalidateGhosts(queryClient, initialModel, chain);
-  };
+  const onTargetChangeEvent = useEffectEvent(() => {
+    if (needsRefresh) {
+      invalidate();
+    }
+  });
 
-  return {
-    value,
-    invalidate,
-  };
+  useEffect(() => {
+    onTargetChangeEvent();
+  }, [needsRefresh]);
 };

@@ -12,19 +12,20 @@ import { RenderComponent } from "./RenderComponent";
 import { resolveGhostChain } from "./resolveGhostChain";
 import { type QueryClient } from "@tanstack/react-query";
 import { invalidateGhosts } from "./invalidate";
+import { queries } from "./queries";
 
 type GhostMethodsWithoutPromise<T> = Omit<
   ReactGhostMethods<T>,
   "then" | "catch" | "finally" | SymbolConstructor["toStringTag"]
 >;
 
-function buildGhostDeep<T>(model: T, ghostChain: GhostChain): ReactGhost<T> {
-  const target = (() => {
+function buildGhostDeep<T>(target: T, ghostChain: GhostChain): ReactGhost<T> {
+  const proxyTarget = (() => {
     // Dummy function to allow ghosting function calls
   }) as never;
 
   const useQuery: ReactGhostMethods<T>["useGhost"] = (options) =>
-    useGhostChain<T>(model, ghostChain, options);
+    useGhostChain<T>(target, ghostChain, options);
 
   const useGhostMethods: GhostMethodsWithoutPromise<T> = {
     use: (options) => useQuery(options).value,
@@ -46,12 +47,11 @@ function buildGhostDeep<T>(model: T, ghostChain: GhostChain): ReactGhost<T> {
       return ghost;
     },
 
-    invalidate: (queryClient: QueryClient) => {
-      invalidateGhosts(queryClient, model, ghostChain);
-    },
+    invalidate: (queryClient: QueryClient) =>
+      invalidateGhosts(queryClient, queries.ghostChain(target, ghostChain)),
   };
 
-  const ghost = new Proxy(target, {
+  const ghost = new Proxy(proxyTarget, {
     get: ($, prop) => {
       if (prop === isGhostMarker) {
         return true;
@@ -63,7 +63,7 @@ function buildGhostDeep<T>(model: T, ghostChain: GhostChain): ReactGhost<T> {
 
       if (prop === "then") {
         return (resolve: AnyFunction, reject: AnyFunction) =>
-          resolveGhostChain(model, ghostChain).then(resolve).catch(reject);
+          resolveGhostChain(target, ghostChain).then(resolve).catch(reject);
       }
 
       if (prop === Symbol.toPrimitive) {
@@ -75,7 +75,7 @@ function buildGhostDeep<T>(model: T, ghostChain: GhostChain): ReactGhost<T> {
         };
       }
 
-      return buildGhostDeep(model, [
+      return buildGhostDeep(target, [
         ...ghostChain,
         {
           propName: String(prop),
@@ -90,13 +90,13 @@ function buildGhostDeep<T>(model: T, ghostChain: GhostChain): ReactGhost<T> {
         prevCallStackEntry.args = args;
       }
 
-      return buildGhostDeep(model, ghostChain);
+      return buildGhostDeep(target, ghostChain);
     },
   });
 
   return ghost;
 }
 
-export function makeGhost<T>(model: T): ReactGhost<T> {
-  return buildGhostDeep(model, []);
+export function makeGhost<T>(target: T): ReactGhost<T> {
+  return buildGhostDeep(target, []);
 }

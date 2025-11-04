@@ -1,32 +1,17 @@
-import { matchQuery, type QueryClient } from "@tanstack/react-query";
-import type { GhostChain } from "./types";
-import { getGhostId, queries } from "./queries";
+import { type QueryClient } from "@tanstack/react-query";
+import type { QueryKey } from "./types";
 
-export const invalidateGhostsById = (
+export async function invalidateGhosts(
   queryClient: QueryClient,
-  ghostId: string,
-) => {
-  queryClient.invalidateQueries({
-    predicate: (query) => query.meta?.ghostId === ghostId,
-  });
-};
-
-export function invalidateGhosts(
-  queryClient: QueryClient,
-  model: unknown,
-  chain: GhostChain,
+  queryKey: QueryKey,
 ) {
-  const queryKey = queries.ghostChain(model, chain);
-  const ghostId = getGhostId(queryKey);
+  for (let i = 1; i <= queryKey.length; i++) {
+    const partialKey = queryKey.slice(0, i);
+    const exact = i < queryKey.length;
 
-  queryClient.invalidateQueries({
-    predicate: (query) =>
-      query.meta?.ghostId === ghostId ||
-      matchQuery(
-        {
-          queryKey,
-        },
-        query,
-      ),
-  });
+    await queryClient.invalidateQueries({
+      queryKey: partialKey,
+      exact,
+    });
+  }
 }

@@ -1,7 +1,14 @@
 import { beforeEach, vitest } from "vitest";
-import { getGhostId, makeGhost, registerModelIdentifier } from ".";
+import { getQueryContext, makeGhost, registerModelIdentifier } from ".";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = () => new Promise((resolve) => setTimeout(resolve, 200));
+
+export const advanceSleepTimer = async (times = 1) => {
+  for (let i = 0; i < times; i++) {
+    await vitest.advanceTimersByTimeAsync(200);
+  }
+};
 
 export let customerMocks: {
   getName: () => void;
@@ -15,7 +22,9 @@ export let projectMocks: {
   getStatus: () => void;
 };
 
-export const getCustomerNameGhostIds: { current?: string | undefined } = {};
+export const getCustomerNameGhostIds: {
+  current?: QueryFunctionContext | undefined;
+} = {};
 
 beforeEach(() => {
   vitest.resetAllMocks();
@@ -23,7 +32,7 @@ beforeEach(() => {
 
   customerMocks = {
     getName: vitest.fn().mockImplementation(() => {
-      getCustomerNameGhostIds.current = getGhostId();
+      getCustomerNameGhostIds.current = getQueryContext();
     }),
     getDetailed: vitest
       .fn()
@@ -73,7 +82,7 @@ export class Customer {
   }
 
   public static async get(id: string): Promise<CustomerDetailed> {
-    await sleep(5);
+    await sleep();
     return customerMocks.getDetailed(id);
   }
 }
@@ -90,12 +99,12 @@ export class Project {
   }
 
   public async getDetailed(): Promise<ProjectDetailed> {
-    await sleep(5);
+    await sleep();
     return projectMocks.getDetailed(this.id);
   }
 
   public async findDetailed(): Promise<ProjectDetailed | undefined> {
-    await sleep(5);
+    await sleep();
     return projectMocks.findDetailed(this.id);
   }
 }
@@ -118,7 +127,7 @@ export class ProjectDetailed {
 
   public async getStatus() {
     projectMocks.getStatus();
-    await sleep(5);
+    await sleep();
     return "active";
   }
 }

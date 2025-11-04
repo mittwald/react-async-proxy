@@ -25,7 +25,7 @@ export interface ReactGhostMethods<T> extends Promise<T> {
     fn: (item: T extends ReactGhost<infer T2> ? T2 : T) => U2,
     dependencies?: DependencyList,
   ) => ReactGhost<U2>;
-  invalidate: (queryClient: QueryClient) => void;
+  invalidate: (queryClient: QueryClient) => Promise<void>;
 }
 
 export const transformFnProp = "___transformFn" as const;
@@ -46,19 +46,18 @@ export interface GhostChainItem {
 
 export type GhostChain = GhostChainItem[];
 
-export type GhostChainModelType =
+export type GhostChainTargetType =
   | UnknownRecord
   | Class<unknown>
   | null
   | undefined;
 
-export type QueryKey = string[];
+export type QueryKey = readonly unknown[];
 
-export type InvalidateGhostFn = () => void;
+export type InvalidateGhostFn = () => Promise<void>;
 
 export interface GhostChainContext {
   queryKey: QueryKey;
-  ghostId: string;
 }
 
 export interface UseGhostReturn<T> {

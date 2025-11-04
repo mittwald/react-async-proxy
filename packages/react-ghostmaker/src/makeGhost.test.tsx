@@ -1,28 +1,48 @@
-import { cleanup, render, waitFor } from "@testing-library/react";
-import { describe, expect, test, vitest, beforeEach } from "vitest";
+import { cleanup, render } from "@testing-library/react";
+import { describe, expect, test, vitest, beforeEach, afterEach } from "vitest";
 import {
   CustomerDetailed,
   CustomerGhost,
   Project,
+  ProjectDetailed,
   ProjectGhost,
+  advanceSleepTimer,
   customerMocks,
   getCustomerNameGhostIds,
   projectMocks,
 } from "./testMocks";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { invalidateGhostsById } from "./invalidate";
+import { invalidateGhosts } from "./invalidate";
+import { makeGhost } from "./makeGhost";
+
+beforeEach(() => {
+  vitest.useFakeTimers();
+});
+
+afterEach(() => {
+  vitest.runOnlyPendingTimers();
+  vitest.useRealTimers();
+});
 
 test("Pre Test", async () => {
   const project = new Project("P1");
   expect(projectMocks.getDetailed).toHaveBeenCalledTimes(0);
   expect(customerMocks.getDetailed).toHaveBeenCalledTimes(0);
 
-  const detailedProject = await project.getDetailed();
+  const [detailedProject] = await Promise.all([
+    project.getDetailed(),
+    advanceSleepTimer(),
+  ]);
   expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1);
   expect(customerMocks.getDetailed).toHaveBeenCalledTimes(0);
   expect(detailedProject.name).toBe("Project P1");
 
-  const customer = await detailedProject.customer.getDetailed();
+  const [customer] = await Promise.all([
+    detailedProject.customer.getDetailed(),
+    advanceSleepTimer(),
+  ]);
+  await vitest.runOnlyPendingTimersAsync();
+
   expect(customerMocks.getDetailed).toHaveBeenCalledTimes(1);
   expect(customer.id).toBe("C1");
 });
@@ -42,7 +62,8 @@ describe("Await", () => {
     expect(customerMocks.getName).toHaveBeenCalledTimes(0);
     expect(transform).toHaveBeenCalledTimes(0);
 
-    await customerNameGhost;
+    await Promise.all([customerNameGhost, advanceSleepTimer(2)]);
+    await vitest.runOnlyPendingTimersAsync();
 
     expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1);
     expect(customerMocks.getDetailed).toHaveBeenCalledTimes(1);
@@ -51,60 +72,40 @@ describe("Await", () => {
   });
 
   test("simple usage", async () => {
-    const customerName = await ProjectGhost.ofId("Project A")
-      .getDetailed()
-      .customer.getDetailed()
-      .getName();
+    const [customerName] = await Promise.all([
+      ProjectGhost.ofId("Project A")
+        .getDetailed()
+        .customer.getDetailed()
+        .getName(),
+      advanceSleepTimer(2),
+    ]);
     expect(customerName).toBe("Customer C1");
   });
 
   test("with transform", async () => {
-    const customerName = await ProjectGhost.ofId("Project A")
-      .getDetailed()
-      .customer.getDetailed()
-      .getName()
-      .transform((name) => name.toUpperCase());
+    const [customerName] = await Promise.all([
+      ProjectGhost.ofId("Project A")
+        .getDetailed()
+        .customer.getDetailed()
+        .getName()
+        .transform((name) => name.toUpperCase()),
+      advanceSleepTimer(2),
+    ]);
     expect(customerName).toBe("CUSTOMER C1");
   });
 
   test("with undefined result in call stack", async () => {
-    const customerName = await ProjectGhost.ofId("Project A")
-      .findDetailed()
-      .customer.getDetailed()
-      .getName()
-      .transform((name) => {
-        expect(name).toBeUndefined();
-        return name?.toUpperCase();
-      });
-    expect(customerName).toBeUndefined();
-  });
-
-  test("simple usage", async () => {
-    const customerName = await ProjectGhost.ofId("Project A")
-      .getDetailed()
-      .customer.getDetailed()
-      .getName();
-    expect(customerName).toBe("Customer C1");
-  });
-
-  test("with transform", async () => {
-    const customerName = await ProjectGhost.ofId("Project A")
-      .getDetailed()
-      .customer.getDetailed()
-      .getName()
-      .transform((name) => name.toUpperCase());
-    expect(customerName).toBe("CUSTOMER C1");
-  });
-
-  test("with undefined result in call stack", async () => {
-    const customerName = await ProjectGhost.ofId("Project A")
-      .findDetailed()
-      .customer.getDetailed()
-      .getName()
-      .transform((name) => {
-        expect(name).toBeUndefined();
-        return name?.toUpperCase();
-      });
+    const [customerName] = await Promise.all([
+      ProjectGhost.ofId("Project A")
+        .findDetailed()
+        .customer.getDetailed()
+        .getName()
+        .transform((name) => {
+          expect(name).toBeUndefined();
+          return name?.toUpperCase();
+        }),
+      advanceSleepTimer(2),
+    ]);
     expect(customerName).toBeUndefined();
   });
 });
@@ -141,7 +142,10 @@ describe("Hooks", () => {
     });
 
     if (waitForSuspense) {
-      await ui.findByTestId("hook-ready");
+      await Promise.all([
+        ui.findByTestId("hook-ready"),
+        vitest.runOnlyPendingTimersAsync(),
+      ]);
     }
 
     return {
@@ -235,17 +239,16 @@ describe("Hooks", () => {
           .getName()
           .useGhost(),
       );
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(1);
+      expect(customerMocks.getName).toHaveBeenCalledTimes(1);
 
       result.current?.invalidate();
-      await waitFor(() =>
-        expect(projectMocks.getDetailed).toHaveBeenCalledTimes(2),
-      );
-      await waitFor(() =>
-        expect(customerMocks.getDetailed).toHaveBeenCalledTimes(2),
-      );
-      await waitFor(() =>
-        expect(customerMocks.getName).toHaveBeenCalledTimes(2),
-      );
+      await vitest.runOnlyPendingTimersAsync();
+
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(2);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(2);
+      expect(customerMocks.getName).toHaveBeenCalledTimes(2);
     });
 
     test("ghost.invalidate() triggers re-execution of all async methods", async () => {
@@ -255,17 +258,16 @@ describe("Hooks", () => {
         .getName();
 
       await renderHookWithSuspense(() => ghost.use());
-      await waitFor(() =>
-        expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1),
-      );
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(1);
+      expect(customerMocks.getName).toHaveBeenCalledTimes(1);
 
       ghost.invalidate(queryClient);
-      await waitFor(() =>
-        expect(customerMocks.getDetailed).toHaveBeenCalledTimes(2),
-      );
-      await waitFor(() =>
-        expect(customerMocks.getName).toHaveBeenCalledTimes(2),
-      );
+      await vitest.runOnlyPendingTimersAsync();
+
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(2);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(2);
+      expect(customerMocks.getName).toHaveBeenCalledTimes(2);
     });
 
     test("invalidateGhostsById() triggers re-execution of all async methods", async () => {
@@ -275,18 +277,16 @@ describe("Hooks", () => {
         .getName();
 
       await renderHookWithSuspense(() => ghost.use());
-      await waitFor(() =>
-        expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1),
-      );
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(1);
+      expect(customerMocks.getName).toHaveBeenCalledTimes(1);
 
-      expect(getCustomerNameGhostIds.current).toBeDefined();
-      invalidateGhostsById(queryClient, getCustomerNameGhostIds.current!);
-      await waitFor(() =>
-        expect(customerMocks.getDetailed).toHaveBeenCalledTimes(2),
-      );
-      await waitFor(() =>
-        expect(customerMocks.getName).toHaveBeenCalledTimes(2),
-      );
+      invalidateGhosts(queryClient, getCustomerNameGhostIds.current!.queryKey);
+      await vitest.runOnlyPendingTimersAsync();
+
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(2);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(2);
+      expect(customerMocks.getName).toHaveBeenCalledTimes(2);
     });
 
     test("ghost.invalidate() invalidates all dependent ghosts", async () => {
@@ -294,31 +294,49 @@ describe("Hooks", () => {
       const specialGhost = ghost.customer.getDetailed();
 
       await renderHookWithSuspense(() => specialGhost.use());
-      await waitFor(() =>
-        expect(customerMocks.getDetailed).toHaveBeenCalledTimes(1),
-      );
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(1);
 
       ghost.invalidate(queryClient);
-      await waitFor(() =>
-        expect(customerMocks.getDetailed).toHaveBeenCalledTimes(2),
-      );
+      await vitest.runOnlyPendingTimersAsync();
+
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(2);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(2);
     });
 
-    test("ghost.invalidate() invalidate previous ghosts", async () => {
+    test("ghost.invalidate() invalidates previous ghosts", async () => {
       const ghost = ProjectGhost.ofId("Project A").getDetailed();
       const specialGhost = ghost.customer.getDetailed();
 
       await renderHookWithSuspense(() => ghost.use());
-      await waitFor(() =>
-        expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1),
-      );
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(1);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(0);
 
       specialGhost.invalidate(queryClient);
-      await expect(() =>
-        waitFor(() =>
-          expect(projectMocks.getDetailed).toHaveBeenCalledTimes(2),
-        ),
-      ).rejects.toThrow();
+      await vitest.runOnlyPendingTimersAsync();
+
+      expect(projectMocks.getDetailed).toHaveBeenCalledTimes(2);
+      expect(customerMocks.getDetailed).toHaveBeenCalledTimes(0);
+    });
+
+    test("target changes invalidates dependent ghosts", async () => {
+      const projectGhost = ProjectGhost.ofId("Project A").getDetailed();
+
+      await renderHookWithSuspense(() =>
+        makeGhost(projectGhost.use()).getName().use(),
+      );
+      expect(projectMocks.getName).toHaveBeenCalledTimes(1);
+
+      projectMocks.getDetailed = vitest
+        .fn()
+        .mockImplementation(
+          (id) => new ProjectDetailed(id, `CHANGED! Project ${id}`, "C1"),
+        );
+
+      projectGhost.invalidate(queryClient);
+      await vitest.runOnlyPendingTimersAsync();
+
+      expect(projectMocks.getName).toHaveBeenCalledTimes(2);
     });
   });
 });

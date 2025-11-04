@@ -1,7 +1,8 @@
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import { createCascade } from "context";
 
 export interface GhostFnContext {
-  ghostId?: string;
+  query?: QueryFunctionContext;
   [key: string]: unknown;
 }
 
@@ -10,4 +11,4 @@ export const ghostFnContext = createCascade<GhostFnContext>();
 const useGhostFnContext = () =>
   ghostFnContext.use() as GhostFnContext | undefined;
 
-export const getGhostId = () => useGhostFnContext()?.ghostId;
+export const getQueryContext = () => useGhostFnContext()?.query;

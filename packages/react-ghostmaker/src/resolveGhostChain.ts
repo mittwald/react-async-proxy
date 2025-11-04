@@ -5,14 +5,10 @@ import {
   type AnyFunction,
   type GhostChain,
   type GhostChainItem,
-  type GhostChainModelType,
-  type ExplicitAny,
 } from "./types";
 
 const resolveGhostChainItem = async (target: unknown, item: GhostChainItem) => {
   const { propName, args } = item;
-
-  const model = target as GhostChainModelType;
 
   if (propName === transformFnProp) {
     assert.array(args);
@@ -28,11 +24,11 @@ const resolveGhostChainItem = async (target: unknown, item: GhostChainItem) => {
     return transformed;
   }
 
-  if (is.nullOrUndefined(model)) {
+  if (is.nullOrUndefined(target)) {
     return undefined;
   }
-
-  const property = model[propName as keyof typeof model];
+  assert.object(target);
+  const property = target[propName as keyof typeof target];
 
   if (args === undefined) {
     return property;
@@ -45,11 +41,8 @@ const resolveGhostChainItem = async (target: unknown, item: GhostChainItem) => {
   return await asyncFn(...args);
 };
 
-export const resolveGhostChain = async (
-  initialModel: ExplicitAny,
-  stack: GhostChain,
-) => {
-  let result = initialModel;
+export const resolveGhostChain = async (target: unknown, stack: GhostChain) => {
+  let result = target;
 
   for (const item of stack) {
     result = await resolveGhostChainItem(result, item);

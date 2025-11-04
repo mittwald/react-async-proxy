@@ -1,8 +1,9 @@
 import is from "@sindresorhus/is";
 import { modelIdentifiers } from "./modelIdentifier";
 import type { GhostChain, GhostChainItem, QueryKey } from "./types";
+import { hashObject } from "./hash";
 
-export const getObjectQueryKey = (something: unknown): string => {
+const getTargetQueryKey = (something: unknown): string => {
   if (is.primitive(something)) {
     return String(something);
   }
@@ -25,27 +26,27 @@ export const getObjectQueryKey = (something: unknown): string => {
   if (thisModelIdentifiers) {
     return `${objectName}@${thisModelIdentifiers}`;
   }
+
   return objectName;
 };
 
-export const ghostmakerQueryKey = "react-ghostmaker";
-
-export const getGhostId = (queryKey: QueryKey): string => {
-  return queryKey.join(".");
+const getArgKey = (arg: unknown) => {
+  if (is.primitive(arg)) {
+    return String(arg);
+  }
+  return hashObject(arg);
 };
 
 export const queries = {
-  ghostmaker: () => [ghostmakerQueryKey],
-  model: (model: unknown) => [
+  ghostmaker: () => ["react-ghostmaker"],
+  target: (target: unknown) => [
     ...queries.ghostmaker(),
-    getObjectQueryKey(model),
+    getTargetQueryKey(target),
   ],
-  chainItem: (chainItem: GhostChainItem) => {
+  chainItem: (prev: QueryKey, chainItem: GhostChainItem) => {
     const { propName, args = [] } = chainItem;
-    return [propName, ...args.map(getObjectQueryKey)];
+    return [...prev, propName, ...args.map(getArgKey)];
   },
-  ghostChain: (model: unknown, chain: GhostChain) => [
-    ...queries.model(model),
-    ...chain.flatMap(queries.chainItem),
-  ],
+  ghostChain: (target: unknown, chain: GhostChain) =>
+    chain.reduce(queries.chainItem, queries.target(target)),
 };
