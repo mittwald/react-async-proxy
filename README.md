@@ -7,10 +7,6 @@ models that seamlessly integrate with React Suspense and TanStack Query. These
 ghosts automatically handle async operations, caching, and loading states,
 making your code cleaner and more declarative.
 
-**🔑 Say goodbye to query key management!** Ghost Maker automatically generates
-and manages TanStack Query keys based on your method chains, so you can focus on
-your business logic instead of cache coordination.
-
 ## 📖 Table of Contents
 
 - [✨ Features](#-features)
@@ -28,7 +24,9 @@ your business logic instead of cache coordination.
 
 ## ✨ Features
 
-- 🎭 **Ghost Proxies**: Transform any object into a suspense-ready ghost
+🎭 **Ghost Proxies**: Transform any object—models, existing API clients,
+services, or utilities into a suspense-ready ghost
+
 - ⚡ **Lazy Execution**: Ghosts don't execute until `.use()` or `.render()` is
   called
 - 🎯 **Precise Loading States**: Control exactly where Suspense boundaries
@@ -171,18 +169,38 @@ function TraditionalApp() {
 
 ### Creating Your First Ghost
 
+React Ghost Maker can turn any object into a ghost—not just domain models, but
+also existing API clients, service objects, or utility classes. This makes it
+easy to add Suspense and caching to legacy code or third-party libraries.
+
 ```tsx
 import { makeGhost } from "@mittwald/react-ghostmaker";
 import { Suspense } from "react";
 
-// Your domain model
+// Example: Wrapping an API client
+class BlogApiClient {
+  async fetchBlog(id: string) {
+    const response = await fetch(`/api/blogs/${id}`);
+    return response.json();
+  }
+}
+
+const BlogApiGhost = makeGhost(new BlogApiClient());
+
+function BlogView() {
+  // Use ghostified API client
+  const blog = BlogApiGhost.fetchBlog("123").use();
+  return <article>{blog.title}</article>;
+}
+
+// ...existing code...
+
+// You can also use domain models as shown below:
 class Blog {
   constructor(public id: string) {}
-
   static ofId(id: string): Blog {
     return new Blog(id);
   }
-
   async getDetailed() {
     const response = await fetch(`/api/blogs/${this.id}`);
     const data = await response.json();
@@ -196,23 +214,18 @@ class DetailedBlog extends Blog {
     this.title = data.title;
     this.author = data.author;
   }
-
   public readonly title: string;
   public readonly author: string;
 }
 
-// Create a ghost
 const BlogGhost = makeGhost(Blog);
 
-// Use in React components
-function BlogView() {
+function BlogViewModel() {
   const blogGhost = BlogGhost.ofId("123");
-
   const { value: blogTitle, invalidate } = blogGhost
     .getDetailed()
     .title.transform((title) => title.toUpperCase())
     .useGhost();
-
   return (
     <article>
       <h2>{blogTitle}</h2>
@@ -226,6 +239,7 @@ function App() {
   return (
     <Suspense fallback={<div>Loading blog...</div>}>
       <BlogView />
+      <BlogViewModel />
     </Suspense>
   );
 }
