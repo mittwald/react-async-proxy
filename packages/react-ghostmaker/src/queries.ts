@@ -34,7 +34,7 @@ const getArgKey = (arg: unknown) => {
   if (is.primitive(arg)) {
     return String(arg);
   }
-  return hashObject(arg);
+  return hashObject(arg).toString();
 };
 
 export const queries = {
