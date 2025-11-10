@@ -4,7 +4,7 @@ import { hashObject } from "./hash";
 import { getMetaData } from "./metaData";
 import { modelIdentifiers } from "./modelIdentifier";
 
-const getObjectName = (something: unknown) => {
+export const getModelName = (something: unknown): string | undefined => {
   const isObject = is.object(something);
 
   const getModelNameRecursive = (
@@ -21,27 +21,11 @@ const getObjectName = (something: unknown) => {
   };
 
   const klass = isObject ? something.constructor : undefined;
-  const modelName = getModelNameRecursive(klass);
-  if (modelName) {
-    return modelName;
-  }
-
-  const isClass = is.class(something);
-  const isFunction = is.function(something);
-
-  return isFunction
-    ? something.name
-    : isClass || isObject
-      ? something.constructor.name
-      : "unknown";
+  return getModelNameRecursive(klass);
 };
 
-const getTargetQueryKey = (something: unknown): string => {
-  if (is.primitive(something)) {
-    return String(something);
-  }
-
-  const objectName = getObjectName(something);
+export const getModelId = (something: unknown): string | undefined => {
+  const isObject = is.object(something);
 
   const getIdRecursive = (
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -57,7 +41,35 @@ const getTargetQueryKey = (something: unknown): string => {
     return getIdRecursive(Object.getPrototypeOf(klass));
   };
 
-  const id = getIdRecursive(something.constructor);
+  const klass = isObject ? something.constructor : undefined;
+  return getIdRecursive(klass);
+};
+
+const getObjectName = (something: unknown) => {
+  const modelName = getModelName(something);
+  if (modelName) {
+    return modelName;
+  }
+
+  const isClass = is.class(something);
+  const isFunction = is.function(something);
+  const isObject = is.object(something);
+
+  return isFunction
+    ? something.name
+    : isClass || isObject
+      ? something.constructor.name
+      : "unknown";
+};
+
+const getTargetQueryKey = (something: unknown): string => {
+  if (is.primitive(something)) {
+    return String(something);
+  }
+
+  const objectName = getObjectName(something);
+
+  const id = getModelId(something);
   if (id) {
     return `${objectName}@${id}`;
   }
