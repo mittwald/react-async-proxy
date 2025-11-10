@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import type { BlogGhost } from "../models/react/BlogGhost";
-import { asGhostProps } from "@mittwald/react-ghostmaker";
+import { asGhostProps, makeGhost } from "@mittwald/react-ghostmaker";
 
 interface Props {
   blog: BlogGhost;
@@ -8,9 +8,9 @@ interface Props {
 
 export const SimpleBlogView: FC<Props> = (props) => {
   const { blogGhost } = asGhostProps(props);
-  const blogTitle = blogGhost
-    .getDetailed()
-    .title.transform((t) => t.toUpperCase())
+  const blogTitle = makeGhost(blogGhost.getDetailed().use())
+    .getTitle()
+    .transform((t) => t.toUpperCase())
     .useGhost();
 
   return (

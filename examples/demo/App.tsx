@@ -1,6 +1,5 @@
 import { SimpleBlogView } from "./components/SimpleBlogView";
 import { Suspense, useState } from "react";
-import "./models/react/init";
 import { BlogGhost } from "./models/react/BlogGhost";
 
 const Fallback = () => {

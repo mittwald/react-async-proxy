@@ -1,6 +1,11 @@
+import { GhostMakerModel } from "@mittwald/react-ghostmaker";
 import { getBlog } from "./api";
 import type { BlogApiData } from "./types";
 
+@GhostMakerModel({
+  getId: (blog) => blog.id,
+  name: "Blog",
+})
 export class Blog {
   public readonly id: string;
 
@@ -18,6 +23,9 @@ export class Blog {
   }
 }
 
+@GhostMakerModel({
+  name: "DetailedBlog",
+})
 export class DetailedBlog extends Blog {
   public readonly title: string;
   public readonly author: string;
@@ -26,5 +34,9 @@ export class DetailedBlog extends Blog {
     super(data.id);
     this.title = data.title;
     this.author = data.by;
+  }
+
+  public getTitle() {
+    return this.title;
   }
 }

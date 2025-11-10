@@ -12,3 +12,9 @@ const useGhostFnContext = () =>
   ghostFnContext.use() as GhostFnContext | undefined;
 
 export const getQueryContext = () => useGhostFnContext()?.query;
+
+export function forwardQueryContext<T>(fn: () => T): T {
+  const queryContext = getQueryContext();
+  ghostFnContext.bind({ query: queryContext }, fn);
+  return fn();
+}

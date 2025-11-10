@@ -1,6 +1,7 @@
 import { beforeEach, vitest } from "vitest";
-import { getQueryContext, makeGhost, registerModelIdentifier } from ".";
+import { getQueryContext, makeGhost } from ".";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { GhostMakerModel } from "./metaData";
 
 const sleep = () => new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -51,6 +52,10 @@ beforeEach(() => {
   };
 });
 
+@GhostMakerModel({
+  getId: (customer) => customer.id,
+  name: "CustomerDetailed",
+})
 export class CustomerDetailed {
   public readonly id: string;
   public readonly name: string;
@@ -66,6 +71,10 @@ export class CustomerDetailed {
   }
 }
 
+@GhostMakerModel({
+  getId: (customer) => customer.id,
+  name: "Customer",
+})
 export class Customer {
   public readonly id: string;
 
@@ -87,6 +96,10 @@ export class Customer {
   }
 }
 
+@GhostMakerModel({
+  getId: (project) => project.id,
+  name: "Project",
+})
 export class Project {
   public readonly id: string;
 
@@ -109,6 +122,10 @@ export class Project {
   }
 }
 
+@GhostMakerModel({
+  getId: (project) => project.id,
+  name: "ProjectDetailed",
+})
 export class ProjectDetailed {
   public readonly id: string;
   public readonly name: string;
@@ -134,11 +151,3 @@ export class ProjectDetailed {
 
 export const ProjectGhost = makeGhost(Project);
 export const CustomerGhost = makeGhost(Customer);
-
-registerModelIdentifier((model) =>
-  model instanceof Project ? model.id : undefined,
-);
-
-registerModelIdentifier((model) =>
-  model instanceof Customer ? model.id : undefined,
-);

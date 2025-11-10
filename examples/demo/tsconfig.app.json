@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "jsx": "react-jsx",

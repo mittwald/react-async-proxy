@@ -455,15 +455,22 @@ function BlogPage() {
 }
 ```
 
+
 ## 🏗️ Working with Domain Models
 
 ### Model Identification
 
-Register model identifiers for better caching:
+#### Using the `GhostMakerModel` Decorator (Recommended)
+
+You can now use the `GhostMakerModel` decorator to define model names and IDs for automatic query key generation. This is the recommended and most convenient way to ensure stable and meaningful cache keys for your models.
 
 ```tsx
-import { registerModelIdentifier } from "@mittwald/react-ghostmaker";
+import { GhostMakerModel } from "@mittwald/react-ghostmaker";
 
+@GhostMakerModel({
+  name: "User",
+  getId: (user) => user.id,
+})
 class User {
   constructor(
     public id: string,
@@ -471,20 +478,40 @@ class User {
   ) {}
 }
 
+@GhostMakerModel({
+  name: "Blog",
+  getId: (blog) => blog.id,
+})
 class Blog {
   constructor(
     public id: string,
     public title: string,
   ) {}
 }
+```
 
-// Register identifiers for automatic cache key generation
+**Advantages:**
+
+- Declarative, directly on the model class
+- No need for central registration
+- Name and ID can be set explicitly (for readable query keys)
+- Works for multiple models and inheritance
+
+#### Alternative: `registerModelIdentifier` (deprecated)
+
+The previous `registerModelIdentifier` function is still available but marked as deprecated. It can be used to centrally register IDs for models:
+
+```tsx
+import { registerModelIdentifier } from "@mittwald/react-ghostmaker";
+
 registerModelIdentifier((model) => {
   if (model instanceof User) return `user-${model.id}`;
   if (model instanceof Blog) return `blog-${model.id}`;
   return undefined;
 });
 ```
+
+> **Note:** Prefer the `GhostMakerModel` decorator for new projects.
 
 ## 🎭 Flexible Component Props with MaybeReactGhost
 
