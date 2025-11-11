@@ -841,21 +841,19 @@ Creates a ghost proxy from any object or class instance.
 - **`.invalidate(queryClient)`** - Invalidate this specific ghost's cached data
 - **`await ghost`** - Directly await the ghost to get the resolved value
 
+
 ### Utility Functions
 
 - **`asGhostProps(props)`** - Converts props to ghost-compatible format
-- **`registerModelIdentifier(fn)`** - Register ID extraction function for
-  caching
+- **`GhostMakerModel(options)`** - Decorator to define model name and ID for automatic query key generation
 - **`invalidateGhostsById(id)`** - Globally invalidate cached data by ID
 - **`getGhostId(ghost)`** - Get the unique ID of a ghost
 
 ### Types
 
-- **`MaybeReactGhost<T>`** - Type for props that accept both ghosts and regular
-  objects
+- **`MaybeReactGhost<T>`** - Type for props that accept both ghosts and regular objects
 - **`ReactGhost<T>`** - Type for ghost proxy objects
-- **`UseGhostReturn<T>`** - Return type of `useGhost()` with
-  `{ value, invalidate }`
+- **`UseGhostReturn<T>`** - Return type of `useGhost()` with `{ value, invalidate }`
 
 ## 🤝 Requirements
 
