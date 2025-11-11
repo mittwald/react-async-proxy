@@ -39,29 +39,42 @@ const getMetaDataFromIdentifiers = (
   }
 };
 
+function isClass(value: unknown): value is Class<unknown> {
+  return typeof value === "function" && /class[\s{]/.test(value.toString());
+}
+
+const getClass = (
+  something: unknown,
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+): Function | Class<unknown> | undefined => {
+  return isClass(something)
+    ? something
+    : is.object(something)
+      ? something.constructor
+      : undefined;
+};
+
 export const getMetaData = (
   something: unknown,
 ): GhostMakerModelMeta<DecoratorTarget> | undefined => {
   return (
-    getMetaDataRecursive(
-      something,
-      undefined,
-      is.object(something) ? something.constructor : undefined,
-    ) ?? getMetaDataFromIdentifiers(something)
+    getMetaDataRecursive(something, undefined, getClass(something)) ??
+    getMetaDataFromIdentifiers(something)
   );
 };
 
 const getMetaDataRecursive = (
   something: unknown,
-  collectedOptions?: Partial<GhostMakerModelMeta<DecoratorTarget>>,
+  collectedMeta?: Partial<GhostMakerModelMeta<DecoratorTarget>>,
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   klass?: Function,
 ): GhostMakerModelMeta<DecoratorTarget> | undefined => {
-  const currentClass = is.object(something) ? something.constructor : undefined;
+  const currentClass = getClass(something);
 
   const meta = store.get(klass ?? currentClass);
+
   const mergedMeta =
-    meta || collectedOptions ? { ...meta, ...collectedOptions } : undefined;
+    meta || collectedMeta ? { ...meta, ...collectedMeta } : undefined;
 
   if (mergedMeta && "getId" in mergedMeta && "name" in mergedMeta) {
     return mergedMeta;
