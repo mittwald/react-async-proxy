@@ -29,3 +29,10 @@ test("getMetaData returns correct names", () => {
   expect(getMetaData(Parent)?.name).toBe("TheParent");
   expect(getMetaData(Child)?.name).toBe("TheChild");
 });
+
+test("getMetaData returns getId function", () => {
+  expect(getMetaData(new Child("id"))?.getId).toBeDefined();
+  expect(getMetaData(new Parent("id"))?.getId).toBeDefined();
+  expect(getMetaData(Parent)?.getId).toBeDefined();
+  expect(getMetaData(Child)?.getId).toBeDefined();
+});

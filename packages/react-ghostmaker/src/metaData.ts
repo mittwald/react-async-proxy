@@ -10,10 +10,21 @@ interface GhostMakerModelMeta<T extends DecoratorTarget> {
 
 const store = new Map<unknown, GhostMakerModelMeta<DecoratorTarget>>();
 
+const testNameConflict = (name: string) => {
+  if (Array.from(store.values()).some((meta) => meta.name === name)) {
+    throw new Error(
+      `GhostMakerModel name conflict: A model with the name "${name}" is already registered.`,
+    );
+  }
+};
+
 export function GhostMakerModel<T extends DecoratorTarget>(
   options: GhostMakerModelMeta<T>,
 ) {
   return function (target: T) {
+    if (options.name) {
+      testNameConflict(options.name);
+    }
     store.set(target, options);
   };
 }
