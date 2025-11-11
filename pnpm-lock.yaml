@@ -169,6 +169,9 @@ importers:
       license-checker-rseidelsohn:
         specifier: ^4.4.2
         version: 4.4.2
+      polytype:
+        specifier: ^0.17.0
+        version: 0.17.0
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -1660,6 +1663,10 @@ packages:
   picomatch@4.0.3:
     resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
     engines: {node: '>=12'}
+
+  polytype@0.17.0:
+    resolution: {integrity: sha512-Q1y07MZqHPlGRJs8qI8bnxrQs+W3r24v25cmhbQV/lC9VNNtd+smi/2m3CUHNBDTfLtl+6SpA0EsL/J1oVsEag==}
+    engines: {node: '>=16.0.0'}
 
   postcss@8.5.6:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
@@ -3580,6 +3587,8 @@ snapshots:
   picomatch@2.3.1: {}
 
   picomatch@4.0.3: {}
+
+  polytype@0.17.0: {}
 
   postcss@8.5.6:
     dependencies:

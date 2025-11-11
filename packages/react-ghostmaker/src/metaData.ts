@@ -29,20 +29,20 @@ export function GhostMakerModel<T extends DecoratorTarget>(
   };
 }
 
-type IdentifyModel = (
+type DynamicModel = (
   something: unknown,
-) => GhostMakerModelMeta<DecoratorTarget> | undefined;
+) => GhostMakerModelMeta<DecoratorTarget> | void | undefined;
 
-const modelIdentifiers: IdentifyModel[] = [];
+const dynamicModels: DynamicModel[] = [];
 
-export function ghostMakerModel(modelIdentifier: IdentifyModel): void {
-  modelIdentifiers.push(modelIdentifier);
+export function ghostMakerModel(modelIdentifier: DynamicModel): void {
+  dynamicModels.push(modelIdentifier);
 }
 
-const getMetaDataFromIdentifiers = (
+const getDynamicMetaData = (
   something: unknown,
 ): GhostMakerModelMeta<DecoratorTarget> | undefined => {
-  for (const identifyModel of modelIdentifiers) {
+  for (const identifyModel of dynamicModels) {
     const meta = identifyModel(something);
     if (meta) {
       return meta;
@@ -50,27 +50,12 @@ const getMetaDataFromIdentifiers = (
   }
 };
 
-function isClass(value: unknown): value is Class<unknown> {
-  return typeof value === "function" && /class[\s{]/.test(value.toString());
-}
-
-const getClass = (
-  something: unknown,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-): Function | Class<unknown> | undefined => {
-  return isClass(something)
-    ? something
-    : is.object(something)
-      ? something.constructor
-      : undefined;
-};
-
 export const getMetaData = (
   something: unknown,
 ): GhostMakerModelMeta<DecoratorTarget> | undefined => {
   return (
     getMetaDataRecursive(something, undefined, getClass(something)) ??
-    getMetaDataFromIdentifiers(something)
+    getDynamicMetaData(something)
   );
 };
 
@@ -95,9 +80,33 @@ const getMetaDataRecursive = (
     return mergedMeta;
   }
 
-  return getMetaDataRecursive(
-    something,
-    mergedMeta,
-    Object.getPrototypeOf(klass),
-  );
+  const prototypes = getProtoypes.current(klass);
+
+  for (const proto of prototypes) {
+    const result = getMetaDataRecursive(something, mergedMeta, proto);
+    if (result) {
+      return result;
+    }
+  }
+};
+
+function isClass(value: unknown): value is Class<unknown> {
+  return typeof value === "function" && /class[\s{]/.test(value.toString());
+}
+
+const getClass = (
+  something: unknown,
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+): Function | Class<unknown> | undefined => {
+  return isClass(something)
+    ? something
+    : is.object(something)
+      ? something.constructor
+      : undefined;
+};
+
+export const getProtoypes = {
+  current: (something: unknown) => {
+    return [Object.getPrototypeOf(something)];
+  },
 };
