@@ -4,45 +4,17 @@ import { hashObject } from "./hash";
 import { getMetaData } from "./metaData";
 import { modelIdentifiers } from "./modelIdentifier";
 
-export const getModelName = (something: unknown): string | undefined => {
-  const isObject = is.object(something);
-
-  const getModelNameRecursive = (
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    klass: Function | undefined,
-  ): string | undefined => {
-    if (!klass) {
-      return;
-    }
-    return (
-      getMetaData(klass)?.name ??
-      getModelNameRecursive(Object.getPrototypeOf(klass))
-    );
-  };
-
-  const klass = isObject ? something.constructor : undefined;
-  return getModelNameRecursive(klass);
+export const getModelName = (something: unknown) => {
+  return getMetaData(something)?.name;
 };
 
 export const getModelId = (something: unknown): string | undefined => {
-  const isObject = is.object(something);
-
-  const getIdRecursive = (
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    klass: Function | undefined,
-  ): string | undefined => {
-    if (!klass) {
-      return;
-    }
-    const getId = getMetaData(klass)?.getId;
+  if (is.object(something)) {
+    const getId = getMetaData(something)?.getId;
     if (getId) {
       return getId(something);
     }
-    return getIdRecursive(Object.getPrototypeOf(klass));
-  };
-
-  const klass = isObject ? something.constructor : undefined;
-  return getIdRecursive(klass);
+  }
 };
 
 const getObjectName = (something: unknown) => {
