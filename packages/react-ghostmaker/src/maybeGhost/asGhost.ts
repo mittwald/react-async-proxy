@@ -20,6 +20,10 @@ export function asGhostProps<T, TProps extends (keyof T)[] = (keyof T)[]>(
   const fixupObjectEntry = (entry: [string, unknown]) => {
     const [key, value] = entry;
 
+    if (value === undefined) {
+      return entry;
+    }
+
     const shouldFixup =
       keys === undefined || keys.includes(key as TProps[number]);
 
@@ -27,7 +31,7 @@ export function asGhostProps<T, TProps extends (keyof T)[] = (keyof T)[]>(
       return [`${key}Ghost`, asGhost(value)];
     }
 
-    return [key, value];
+    return entry;
   };
 
   return Object.fromEntries(
